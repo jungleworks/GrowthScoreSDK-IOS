@@ -1,6 +1,0 @@
-use_frameworks!
-target 'GrowthScore_Tests' do
-  pod 'GrowthScore', :path => '../'
-  
-  
-end
