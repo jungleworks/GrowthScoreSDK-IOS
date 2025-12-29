@@ -16,7 +16,7 @@ public class GrowthConfig {
     // MARK: - Public Variables
     public var appKey: String?
     public var authToken: String?
-    public let uniqueId = UUID().uuidString
+    public let uniqueId = Utils.getUDID()
     public var userDetails: GrowthScoreUserDetails?
     public private(set) var initResponse: InitResponseDataModel?
     public private(set) var surveyResponse: SurveyResponse?
@@ -34,6 +34,7 @@ public class GrowthConfig {
     internal func saveSubmitSurveyResponse(_ response: SubmitSurveyResponse) {
         self.submitSurveyResponse = response
     }
+    
     // MARK: - Score Popup
     public func showScorePopup(onScoreSelected: ((Int, String?) -> Void)? = nil) {
         DispatchQueue.main.async {
@@ -45,23 +46,25 @@ public class GrowthConfig {
     }
     
     // MARK: - Initialize SDK API
-    public  func growthInit(firstName: String?, lastName: String?, storeId: String?, email: String?, phone: String?, isSurveyNow: Bool) {
+    public  func growthInit(firstName: String?, lastName: String?, storeId: String?, email: String?, phone: String?, isSurveyNow: Bool,languagecode: String?,completion: @escaping (Result<InitResponseDataModel, Error>) -> Void) {
         let user = GrowthScoreUserDetails(
             firstName: firstName ?? "",
             lastName: lastName ?? "",
             storeId: storeId ?? "",
             email: email ?? "",
             phone: phone ?? "",
-            surveyNow: isSurveyNow
+            surveyNow: isSurveyNow,
+            languagecode: languagecode
         )
         FontLoader.registerFonts()
         InitAPI.initializeSDK(user: user) { result in
             switch result {
             case .success(let response):
                 print("Init Success:", response)
-                
+                completion(.success(response))
             case .failure(let error):
                 print("Init Failed:", error)
+                completion(.failure(error))
                 self.showSuccessAlert(message: "Growthscore Init Failed: \(error.localizedDescription)")
             }
         }
@@ -149,5 +152,17 @@ public class GrowthConfig {
             return topViewController(base: presented)
         }
         return baseVC
+    }
+}
+
+struct Utils {
+    static func getUDID() -> String {
+        return s4() + s4() + s4() + s4()
+    }
+
+    private static func s4() -> String {
+        let randomNumber = Int.random(in: 0x10000...0x1FFFF)
+        let hexString = String(randomNumber, radix: 16)
+        return String(hexString.dropFirst())
     }
 }

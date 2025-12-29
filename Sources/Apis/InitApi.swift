@@ -8,66 +8,57 @@
 import Foundation
 
 public class InitAPI {
-
+    
     // MARK: - Stored Init Response
-    public static private(set) var lastInitResponse: InitResponseDataModel?
-
+   
     public static func initializeSDK(user: GrowthScoreUserDetails,
-                                         completion: @escaping (Result<InitResponseDataModel, Error>) -> Void) {
-
-            // Use the new APIConfig here
-            guard let url = APIConfig.Endpoint.check(appKey: GrowthConfig.shared.appKey ?? "").url else {
-                completion(.failure(NSError(domain: "InitAPI", code: 0,
-                                            userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
-                return
-            }
-
-            // Headers
-            let headers: [String: String] = [
-                "Content-Type": "application/json",
-                "x-gsauthtoken": GrowthConfig.shared.authToken ?? ""
-            ]
-
-        // Convert GrowthScoreUser to JSON
+                                     completion: @escaping (Result<InitResponseDataModel, Error>) -> Void) {
+        
+        guard let url = APIConfig.Endpoint.check(appKey: GrowthConfig.shared.appKey ?? "").url else {
+            completion(.failure(NSError(domain: "InitAPI", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])))
+            return
+        }
+        
+        let headers: [String: String] = ["Content-Type": "application/json"]
+        
         let body: [String: Any] = [
             "firstname": user.firstName,
             "lastname": user.lastName,
             "storeid": user.storeId,
-            "emailid": user.email,
+            "emailid": user.email.lowercased(),
             "phonenumber": user.phone,
             "surveynow": user.surveyNow
         ]
+      
         
         guard let bodyData = try? JSONSerialization.data(withJSONObject: body, options: []) else {
-            completion(.failure(NSError(domain: "InitAPI", code: 0,
-                                        userInfo: [NSLocalizedDescriptionKey: "Invalid request body"])))
+            completion(.failure(NSError(domain: "InitAPI", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid request body"])))
             return
         }
+        
         GrowthConfig.shared.userDetails = user
-        // Perform network request
-        NetworkManager.shared.performRequest(url: url,
-                                             method: "POST",
-                                             headers: headers,
-                                             body: bodyData,
-                                             completion: { (result: Result<InitResponseDataModel, Error>) in
+        print(body)
+        NetworkManager.shared.performRequest(url: url, method: "POST", headers: headers, body: bodyData) { (result: Result<InitResponseDataModel, Error>, response: HTTPURLResponse?) in
+
             switch result {
-            case .success(let response):
-                print("Success flag:", response.success)
-                print("Message:", response.message ?? "No message")
-                InitAPI.lastInitResponse = response
-                InitResponseDataModel.shared = response
-                GrowthConfig.shared.saveInitResponse(response)
-                completion(.success(response))
+            case .success(let responseModel):
+                if let fields = response?.allHeaderFields as? [AnyHashable: Any] {
+                    if let tokenEntry = fields.first(where: { "\($0.key)".lowercased() == "x-gsauthtoken" }),
+                       let token = tokenEntry.value as? String {
+                        GrowthConfig.shared.authToken = token
+                        print("Auth Token saved: \(token)")
+                    } else {
+                        print("❌ x-gsauthtoken header not found in response headers: \(fields)")
+                    }
+                }
+                InitResponseDataModel.shared = responseModel
+                GrowthConfig.shared.saveInitResponse(responseModel)
+                completion(.success(responseModel))
+
             case .failure(let error):
                 completion(.failure(error))
             }
-        })
-
-
+        }
     }
 
-    // MARK: - Helper to access last init data anywhere in SDK
-    public static func getLastInitResponse() -> InitResponseDataModel? {
-        return lastInitResponse
-    }
 }

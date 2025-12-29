@@ -11,7 +11,7 @@ public class ScorePopupViewController: UIViewController {
     
     public var didSelectScore: ((Int, String?) -> Void)?
     private var selectedScore: Int?
-    private let themeColor = UIColor(hex: "#3baad9")
+    private let themeColor = UIColor(hex: GrowthConfig.shared.initResponse?.nps?.buttoncolor ?? "#3baad9")
     
     // MARK: - UI Elements
     private let backgroundView: UIView = {
@@ -40,8 +40,8 @@ public class ScorePopupViewController: UIViewController {
     
     public let titleLabel: UILabel = {
         let label = UILabel()
-        let rawText = GrowthConfig.shared.initResponse?.nps?.displayquestion ?? "How likely are you to recommend us?"
-        label.text = rawText.replacingOccurrences(of: "+", with: " ")
+        let rawText = GrowthConfig.shared.initResponse?.nps?.displayquestion?.urlDecoded ?? "How likely are you to recommend us?"
+        label.text = rawText
         label.font = .growthBold(size: 16)
         label.textColor = UIColor(white: 0.2, alpha: 1.0)
         label.textAlignment = .center
@@ -83,10 +83,34 @@ public class ScorePopupViewController: UIViewController {
         tv.translatesAutoresizingMaskIntoConstraints = false
         return tv
     }()
-    
+
+    private let feedbackPlaceholderLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Tell us more.."
+        label.textColor = .systemGray3
+        label.font = .growthRegular(size: 14)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+
+    private func setupFeedbackTextViewPlaceholder() {
+        feedbackTextView.addSubview(feedbackPlaceholderLabel)
+
+        NSLayoutConstraint.activate([
+            feedbackPlaceholderLabel.topAnchor.constraint(
+                equalTo: feedbackTextView.topAnchor,
+                constant: 8
+            ),
+            feedbackPlaceholderLabel.leadingAnchor.constraint(
+                equalTo: feedbackTextView.leadingAnchor,
+                constant: 5
+            )
+        ])
+    }
+
     private lazy var submitButton: UIButton = {
         let btn = UIButton(type: .system)
-        btn.setTitle("Submit Feedback", for: .normal)
+        btn.setTitle(GrowthConfig.shared.initResponse?.nps?.submitbutton ?? "Submit Feedback", for: .normal)
         btn.backgroundColor = themeColor
         btn.setTitleColor(.white, for: .normal)
         btn.titleLabel?.font = .growthBold(size: 15)
@@ -107,6 +131,26 @@ public class ScorePopupViewController: UIViewController {
         return label
     }()
     
+    private lazy var keyboardToolbar: UIToolbar = {
+        let toolbar = UIToolbar()
+        toolbar.sizeToFit()
+
+        let flexSpace = UIBarButtonItem(
+            barButtonSystemItem: .flexibleSpace,
+            target: nil,
+            action: nil
+        )
+
+        let doneButton = UIBarButtonItem(
+            title: "Done",
+            style: .done,
+            target: self,
+            action: #selector(doneButtonTapped)
+        )
+
+        toolbar.items = [flexSpace, doneButton]
+        return toolbar
+    }()
     // MARK: - Lifecycle
     public override func viewDidLoad() {
         super.viewDidLoad()
@@ -121,10 +165,11 @@ public class ScorePopupViewController: UIViewController {
         [closeButton, titleLabel, scoresStackView, legendStackView, feedbackTextView, submitButton, footerLabel].forEach {
             containerView.addSubview($0)
         }
-        
+        feedbackTextView.delegate = self
+        feedbackTextView.inputAccessoryView = keyboardToolbar
+        setupFeedbackTextViewPlaceholder()
         closeButton.addTarget(self, action: #selector(dismissWithAnimation), for: .touchUpInside)
         submitButton.addTarget(self, action: #selector(submitTapped), for: .touchUpInside)
-        
         NSLayoutConstraint.activate([
             backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
             backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
@@ -171,7 +216,7 @@ public class ScorePopupViewController: UIViewController {
     }
     
     private func setupScores() {
-        let style = GrowthConfig.shared.initResponse?.nps?.buttonstyle?.lowercased() ?? "circle"
+        let style = GrowthConfig.shared.initResponse?.nps?.buttonshape?.lowercased() ?? "circle"
         for i in 1...10 {
             let btn = UIButton(type: .custom)
             btn.setTitle("\(i)", for: .normal)
@@ -180,10 +225,27 @@ public class ScorePopupViewController: UIViewController {
             btn.setTitleColor(themeColor, for: .normal)
             btn.layer.borderWidth = 1
             btn.layer.borderColor = themeColor.cgColor
-            btn.layer.cornerRadius = (style == "square") ? 4 : 15
+            
+            switch style {
+            case "square":
+                btn.layer.cornerRadius = 0
+            case "rounded":
+                btn.layer.cornerRadius = 6
+            case "circle":
+                btn.layer.cornerRadius = 15
+            default:
+                btn.layer.cornerRadius = 15
+            }
+            
             btn.tag = i
             btn.addTarget(self, action: #selector(scoreTapped(_:)), for: .touchUpInside)
             scoresStackView.addArrangedSubview(btn)
+            
+            btn.translatesAutoresizingMaskIntoConstraints = false
+            NSLayoutConstraint.activate([
+                btn.widthAnchor.constraint(equalToConstant: 30),
+                btn.heightAnchor.constraint(equalToConstant: 30)
+            ])
         }
     }
     
@@ -213,6 +275,11 @@ public class ScorePopupViewController: UIViewController {
         }
     }
     
+    @objc private func doneButtonTapped() {
+        feedbackTextView.resignFirstResponder()
+    }
+
+    
     private func showFeedbackUI() {
         UIView.animate(withDuration: 0.3) {
             // Hide Score UI
@@ -233,6 +300,7 @@ public class ScorePopupViewController: UIViewController {
             self.scoresStackView.isHidden = true
             self.legendStackView.isHidden = true
             self.feedbackTextView.becomeFirstResponder()
+            self.setupFeedbackTextViewPlaceholder()
         }
     }
     
@@ -282,4 +350,21 @@ public class ScorePopupViewController: UIViewController {
             }
         }
     }
+}
+
+extension ScorePopupViewController: UITextViewDelegate {
+    public func textViewDidChange(_ textView: UITextView) {
+        feedbackPlaceholderLabel.isHidden = !textView.text.isEmpty
+    }
+
+    public func textViewDidBeginEditing(_ textView: UITextView) {
+        feedbackPlaceholderLabel.isHidden = true
+    }
+
+    public func textViewDidEndEditing(_ textView: UITextView) {
+        feedbackPlaceholderLabel.isHidden = !textView.text.isEmpty
+    }
+    
+    
+
 }

@@ -13,6 +13,7 @@ public struct GrowthScoreUserDetails: Codable {
     public let storeId: String
     public let email: String
     public let phone: String
+    public let languagecode: String?
     public let surveyNow: Bool
 
     public init(
@@ -21,13 +22,15 @@ public struct GrowthScoreUserDetails: Codable {
         storeId: String,
         email: String,
         phone: String,
-        surveyNow: Bool
+        surveyNow: Bool,
+        languagecode: String? = "en"
     ) {
         self.firstName = firstName
         self.lastName = lastName
         self.storeId = storeId
-        self.email = email
+        self.email = email.lowercased()
         self.phone = phone
         self.surveyNow = surveyNow
+        self.languagecode = languagecode
     }
 }

@@ -61,12 +61,13 @@ public final class SubmitAPI {
             ]
 
             NetworkManager.shared.performRequest(
-                url: url,
-                method: "POST",
-                headers: headers,
-                body: bodyData,
-                completion: completion
-            )
+                            url: url,
+                            method: "POST",
+                            headers: headers,
+                            body: bodyData
+                        ) { (result: Result<SubmitResponse, Error>, _) in
+                            completion(result)
+                        }
 
         } catch {
             completion(.failure(error))
@@ -125,7 +126,7 @@ public final class SubmitAPI {
                    method: "POST",
                    headers: headers,
                    body: body
-               ) { (result: Result<SubmitSurveyResponse, Error>) in
+               ) { (result: Result<SubmitSurveyResponse, Error>,_) in
 
                    switch result {
                    case .success(let response):

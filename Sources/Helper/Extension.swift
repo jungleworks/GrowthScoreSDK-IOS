@@ -29,3 +29,10 @@ extension UIColor {
         self.init(red: red, green: green, blue: blue, alpha: 1.0)
     }
 }
+extension String {
+    var urlDecoded: String {
+        return self
+            .replacingOccurrences(of: "+", with: " ")
+            .removingPercentEncoding ?? self
+    }
+}

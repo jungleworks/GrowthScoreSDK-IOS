@@ -7,18 +7,18 @@
 
 import Foundation
 
-
 public class NetworkManager {
 
     public static let shared = NetworkManager()
     private init() {}
 
-    /// Performs a network request and returns either a typed Codable object or the raw JSON dictionary
+    /// Performs a network request and returns a typed Codable object along with HTTPURLResponse
     public func performRequest<T: Codable>(url: URL,
                                            method: String = "POST",
                                            headers: [String: String] = [:],
                                            body: Data? = nil,
-                                           completion: @escaping (Result<T, Error>) -> Void) {
+                                           // Change: Added HTTPURLResponse? to the completion tuple
+                                           completion: @escaping (Result<T, Error>, HTTPURLResponse?) -> Void) {
 
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -26,37 +26,39 @@ public class NetworkManager {
         request.httpBody = body
 
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            // Cast the response to HTTPURLResponse to access headers
+            let httpResponse = response as? HTTPURLResponse
+            
             if let error = error {
-                completion(.failure(error))
-                return
-            }
-            print(url)
-            guard let data = data else {
-                completion(.failure(NSError(domain: "NetworkManager", code: 0,
-                                            userInfo: [NSLocalizedDescriptionKey: "No data"])))
+                completion(.failure(error), httpResponse)
                 return
             }
 
-            // Print raw JSON for debugging
+            guard let data = data else {
+                completion(.failure(NSError(domain: "NetworkManager", code: 0,
+                                            userInfo: [NSLocalizedDescriptionKey: "No data"])), httpResponse)
+                return
+            }
+
+            // Print raw JSON and Headers for debugging
             if let jsonString = String(data: data, encoding: .utf8) {
+                print("--- Network Debug ---")
+                print("URL: \(url)")
+                print("FINAL HEADERS:", request.allHTTPHeaderFields ?? [:])
+                print("Status Code: \(httpResponse?.statusCode ?? 0)")
                 print("Server Response: \(jsonString)")
             }
 
             do {
-                // Try decoding to the expected Codable type
                 let decoded = try JSONDecoder().decode(T.self, from: data)
-                completion(.success(decoded))
+                // Success: return decoded data and response metadata
+                completion(.success(decoded), httpResponse)
             } catch {
-                // If decoding fails, fallback to raw dictionary
-                do {
-                    if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                        print("Decoding failed, returning raw JSON dictionary instead")
-                        print(json)
-                    }
-                } catch {
-                    print("Failed to parse JSON:", error)
+                // Fallback debugging
+                if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                    print("Decoding failed. Raw JSON: \(json)")
                 }
-                completion(.failure(error))
+                completion(.failure(error), httpResponse)
             }
         }
 

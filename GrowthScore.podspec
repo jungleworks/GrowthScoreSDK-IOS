@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'GrowthScore'
-   s.version          = '1.0.0'
+   s.version          = '1.0.1'
    s.summary          = 'GrowthScore iOS SDK'
    s.homepage         = 'https://github.com/jungleworks/GrowthScoreSDK-IOS'
    s.license          = { :type => 'MIT', :file => 'LICENSE' }
@@ -25,9 +25,7 @@ Pod::Spec.new do |s|
 
   s.source_files = 'Sources/**/*.swift'
   s.resource_bundles = {
-    'GrowthScore' => [
-      'GrowthScore/Resources/**/*'
-    ]
+    'GrowthScore' => ['GrowthScore/Resources/**/*']
   }
 
 end

@@ -8,19 +8,6 @@
 import Foundation
 
 // MARK: - Data Models
-public struct SurveyPayload: Codable {
-    public let storeId: String
-    public let emailId: String
-    public let campaignId: Int
-    public let uniqueId: String
-
-    enum CodingKeys: String, CodingKey {
-        case storeId = "storeid"
-        case emailId = "emailid"
-        case campaignId = "campaignid"
-        case uniqueId = "uniqueid"
-    }
-}
 
 public struct SurveyResponse: Codable {
     public let activityId: Int?
@@ -36,17 +23,3 @@ public struct SurveyResponse: Codable {
     }
 }
 
-// MARK: - Error Handling
-public enum SurveyError: LocalizedError {
-    case uninitialized
-    case invalidURL
-    case encodingError
-    
-    public var errorDescription: String? {
-        switch self {
-        case .uninitialized: return "GrowthScore SDK is not properly initialized."
-        case .invalidURL:    return "The generated survey URL is invalid."
-        case .encodingError: return "Failed to encode survey payload."
-        }
-    }
-}

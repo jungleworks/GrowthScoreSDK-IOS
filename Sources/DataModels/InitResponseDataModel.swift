@@ -8,7 +8,7 @@
 import Foundation
 
 public struct InitResponseDataModel: Codable {
-    public let success: Bool
+    public let success: Bool?
     public let statuscode: Int?
     public let message: String?
     public let accountid: Int?
