@@ -161,7 +161,10 @@ public class ScorePopupViewController: UIViewController {
     
     private func setupViews() {
         view.addSubview(backgroundView)
-        view.addSubview(containerView)
+        backgroundView.addSubview(containerView)
+        let tap = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped))
+        backgroundView.addGestureRecognizer(tap)
+        backgroundView.isUserInteractionEnabled = true
         [closeButton, titleLabel, scoresStackView, legendStackView, feedbackTextView, submitButton, footerLabel].forEach {
             containerView.addSubview($0)
         }
@@ -214,7 +217,9 @@ public class ScorePopupViewController: UIViewController {
             footerLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor)
         ])
     }
-    
+    @objc private func backgroundTapped() {
+        // Do nothing OR dismiss popup if you want
+    }
     private func setupScores() {
         let style = GrowthConfig.shared.initResponse?.nps?.buttonshape?.lowercased() ?? "circle"
         for i in 1...10 {
@@ -364,7 +369,4 @@ extension ScorePopupViewController: UITextViewDelegate {
     public func textViewDidEndEditing(_ textView: UITextView) {
         feedbackPlaceholderLabel.isHidden = !textView.text.isEmpty
     }
-    
-    
-
 }

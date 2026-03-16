@@ -9,7 +9,7 @@
 
 Pod::Spec.new do |s|
   s.name             = 'GrowthScore'
-   s.version          = '1.0.1'
+   s.version          = '1.0.2'
    s.summary          = 'GrowthScore iOS SDK'
    s.homepage         = 'https://github.com/jungleworks/GrowthScoreSDK-IOS'
    s.license          = { :type => 'MIT', :file => 'LICENSE' }
