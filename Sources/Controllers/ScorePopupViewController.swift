@@ -160,11 +160,10 @@ public class ScorePopupViewController: UIViewController {
     }
     
     private func setupViews() {
+        view.addSubview(touchBlockerView)
         view.addSubview(backgroundView)
-        backgroundView.addSubview(containerView)
-        let tap = UITapGestureRecognizer(target: self, action: #selector(backgroundTapped))
-        backgroundView.addGestureRecognizer(tap)
-        backgroundView.isUserInteractionEnabled = true
+        view.addSubview(containerView)
+      
         [closeButton, titleLabel, scoresStackView, legendStackView, feedbackTextView, submitButton, footerLabel].forEach {
             containerView.addSubview($0)
         }
@@ -174,6 +173,10 @@ public class ScorePopupViewController: UIViewController {
         closeButton.addTarget(self, action: #selector(dismissWithAnimation), for: .touchUpInside)
         submitButton.addTarget(self, action: #selector(submitTapped), for: .touchUpInside)
         NSLayoutConstraint.activate([
+            touchBlockerView.topAnchor.constraint(equalTo: view.topAnchor),
+            touchBlockerView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            touchBlockerView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            touchBlockerView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backgroundView.topAnchor.constraint(equalTo: view.topAnchor),
             backgroundView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             backgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -217,9 +220,12 @@ public class ScorePopupViewController: UIViewController {
             footerLabel.centerXAnchor.constraint(equalTo: containerView.centerXAnchor)
         ])
     }
-    @objc private func backgroundTapped() {
-        // Do nothing OR dismiss popup if you want
-    }
+    private let touchBlockerView: TouchBlockerView = {
+        let view = TouchBlockerView()
+        view.backgroundColor = .clear
+        view.translatesAutoresizingMaskIntoConstraints = false
+        return view
+    }()
     private func setupScores() {
         let style = GrowthConfig.shared.initResponse?.nps?.buttonshape?.lowercased() ?? "circle"
         for i in 1...10 {

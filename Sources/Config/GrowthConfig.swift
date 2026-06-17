@@ -65,7 +65,7 @@ public class GrowthConfig {
             case .failure(let error):
                 print("Init Failed:", error)
                 completion(.failure(error))
-                self.showSuccessAlert(message: "Growthscore Init Failed: \(error.localizedDescription)")
+                //self.showSuccessAlert(message: "Growthscore Init Failed: \(error.localizedDescription)")
             }
         }
     }

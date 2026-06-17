@@ -36,3 +36,8 @@ extension String {
             .removingPercentEncoding ?? self
     }
 }
+class TouchBlockerView: UIView {
+    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+        return true
+    }
+}
