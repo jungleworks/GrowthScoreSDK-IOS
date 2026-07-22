@@ -21,7 +21,7 @@ public class InitAPI {
         
         let headers: [String: String] = ["Content-Type": "application/json"]
         
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "firstname": user.firstName,
             "lastname": user.lastName,
             "storeid": user.storeId,
@@ -29,6 +29,10 @@ public class InitAPI {
             "phonenumber": user.phone,
             "surveynow": user.surveyNow
         ]
+
+        if let attributes = user.attributes {
+            body["attributes"] = attributes
+        }
       
         
         guard let bodyData = try? JSONSerialization.data(withJSONObject: body, options: []) else {

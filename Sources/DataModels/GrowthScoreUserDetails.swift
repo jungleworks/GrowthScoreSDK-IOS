@@ -15,6 +15,7 @@ public struct GrowthScoreUserDetails: Codable {
     public let phone: String
     public let languagecode: String?
     public let surveyNow: Bool
+    public let attributes: [String: String]?
 
     public init(
         firstName: String,
@@ -23,7 +24,8 @@ public struct GrowthScoreUserDetails: Codable {
         email: String,
         phone: String,
         surveyNow: Bool,
-        languagecode: String? = "en"
+        languagecode: String? = "en",
+        attributes: [String: String]? = nil
     ) {
         self.firstName = firstName
         self.lastName = lastName
@@ -32,5 +34,6 @@ public struct GrowthScoreUserDetails: Codable {
         self.phone = phone
         self.surveyNow = surveyNow
         self.languagecode = languagecode
+        self.attributes = attributes
     }
 }

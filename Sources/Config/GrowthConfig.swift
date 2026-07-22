@@ -46,7 +46,7 @@ public class GrowthConfig {
     }
     
     // MARK: - Initialize SDK API
-    public  func growthInit(firstName: String?, lastName: String?, storeId: String?, email: String?, phone: String?, isSurveyNow: Bool,languagecode: String?,completion: @escaping (Result<InitResponseDataModel, Error>) -> Void) {
+    public  func growthInit(firstName: String?, lastName: String?, storeId: String?, email: String?, phone: String?, isSurveyNow: Bool,languagecode: String?, attributes: [String: String]? = nil, completion: @escaping (Result<InitResponseDataModel, Error>) -> Void) {
         let user = GrowthScoreUserDetails(
             firstName: firstName ?? "",
             lastName: lastName ?? "",
@@ -54,7 +54,8 @@ public class GrowthConfig {
             email: email ?? "",
             phone: phone ?? "",
             surveyNow: isSurveyNow,
-            languagecode: languagecode
+            languagecode: languagecode,
+            attributes: attributes
         )
         FontLoader.registerFonts()
         InitAPI.initializeSDK(user: user) { result in
