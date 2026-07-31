@@ -12,7 +12,7 @@ public final class SurveyAPI {
     public static let shared = SurveyAPI()
     private init() {}
     
-    public func startSurvey(completion: @escaping (Result<SurveyResponse, Error>) -> Void) {
+    public func startSurvey(attributes: [String: String]? = nil, completion: @escaping (Result<SurveyResponse, Error>) -> Void) {
         guard
             let appKey = GrowthConfig.shared.appKey,
             let authToken = GrowthConfig.shared.authToken,
@@ -25,12 +25,16 @@ public final class SurveyAPI {
 
         guard let url = APIConfig.Endpoint.startSurvey(appKey: appKey).url else { return }
 
-        let body: [String: Any] = [
+        var body: [String: Any] = [
             "storeid": userDetails.storeId,
             "emailid": userDetails.email,
             "campaignid": initData.campaignid ?? 0,
             "uniqueid": GrowthConfig.shared.uniqueId
         ]
+
+        if let attributes = attributes {
+            body["attributes"] = attributes
+        }
 
         guard let bodyData = try? JSONSerialization.data(withJSONObject: body) else { return }
 

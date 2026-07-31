@@ -73,8 +73,8 @@ public class GrowthConfig {
     
     // MARK: - Start Survey API
     
-    public func startSurvey() {
-        SurveyAPI.shared.startSurvey { result in
+    public func startSurvey(attributes: [String: String]? = nil) {
+        SurveyAPI.shared.startSurvey(attributes: attributes) { result in
             switch result {
             case .success:
                 DispatchQueue.main.async {
