@@ -16,7 +16,7 @@ public class GrowthConfig {
     // MARK: - Public Variables
     public var appKey: String?
     public var authToken: String?
-    public let uniqueId = Utils.getUDID()
+    public var uniqueId = Utils.getUDID()
     public var userDetails: GrowthScoreUserDetails?
     public private(set) var initResponse: InitResponseDataModel?
     public private(set) var surveyResponse: SurveyResponse?

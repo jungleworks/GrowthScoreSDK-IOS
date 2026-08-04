@@ -25,6 +25,8 @@ public final class SurveyAPI {
 
         guard let url = APIConfig.Endpoint.startSurvey(appKey: appKey).url else { return }
 
+        GrowthConfig.shared.uniqueId = Utils.getUDID()
+
         var body: [String: Any] = [
             "storeid": userDetails.storeId,
             "emailid": userDetails.email,
