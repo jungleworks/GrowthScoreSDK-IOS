@@ -110,8 +110,27 @@ public class GrowthConfig {
                 completion(true)
             case .failure(let error):
                 print("Failed to submit survey: \(error.localizedDescription)")
-              
                 completion(false)
+            }
+        }
+    }
+
+    // MARK: - Headless Survey Submission (no built-in popup UI)
+
+    public func submitCustomSurvey(
+        score: Int,
+        feedback: String? = nil,
+        attributes: [String: String]? = nil,
+        completion: @escaping (Result<SubmitSurveyResponse, Error>) -> Void
+    ) {
+        SurveyAPI.shared.startSurvey(attributes: attributes) { result in
+            switch result {
+            case .success:
+                SubmitAPI.shared.submitSurvey(score: score, feedback: feedback) { result in
+                    completion(result)
+                }
+            case .failure(let error):
+                completion(.failure(error))
             }
         }
     }
