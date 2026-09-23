@@ -21,7 +21,27 @@ public class GrowthConfig {
     public private(set) var initResponse: InitResponseDataModel?
     public private(set) var surveyResponse: SurveyResponse?
     public private(set) var submitSurveyResponse: SubmitSurveyResponse?
-    
+
+    // MARK: - App Store In-App Review Settings
+
+    /// Master switch for the App Store in-app review prompt.
+    public var appReviewEnabled: Bool = true
+
+    /// Lowest score that counts as a promoter. Defaults to 9, so 9 and 10 qualify.
+    public var appReviewMinScore: Int = 9
+
+    /// How long to wait after a promoter score before the prompt becomes eligible.
+    /// Defaults to 48 hours. Use this for short delays, e.g. 1 during testing.
+    public var appReviewDelayMinutes: Int = 48 * 60
+
+    /// The same delay expressed in hours. Reads and writes `appReviewDelayMinutes`,
+    /// so the two can never disagree. Reading it after setting a delay that is not
+    /// a whole number of hours rounds down.
+    public var appReviewDelayHours: Int {
+        get { appReviewDelayMinutes / 60 }
+        set { appReviewDelayMinutes = newValue * 60 }
+    }
+
     // MARK: - Internal State Updates
     internal func saveInitResponse(_ response: InitResponseDataModel) {
         self.initResponse = response
@@ -133,6 +153,35 @@ public class GrowthConfig {
                 completion(.failure(error))
             }
         }
+    }
+
+    // MARK: - App Store In-App Review
+
+    /// Shows the App Store review prompt over `scene` if a promoter score was
+    /// submitted and `appReviewDelayMinutes` have since elapsed. Cheap to call from
+    /// any screen becoming active: it is a UserDefaults read and returns immediately
+    /// when the prompt is not due.
+    ///
+    /// Shows at most once per install. `completion` is called on the main thread and
+    /// reports whether the request was made, not whether the user left a review.
+    public func checkAndShowAppReview(
+        in scene: UIWindowScene?,
+        completion: ((Bool) -> Void)? = nil
+    ) {
+        AppReviewManager.checkAndShow(in: scene, completion: completion)
+    }
+
+    /// Convenience for hosts that have a view controller rather than a scene.
+    public func checkAndShowAppReview(
+        from viewController: UIViewController,
+        completion: ((Bool) -> Void)? = nil
+    ) {
+        checkAndShowAppReview(in: viewController.view.window?.windowScene, completion: completion)
+    }
+
+    /// Clears the review prompt's stored state so a later promoter score can arm it again.
+    public func resetAppReviewState() {
+        AppReviewManager.reset()
     }
 
     private func showSuccessAlert(message: String) {

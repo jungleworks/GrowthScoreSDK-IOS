@@ -66,6 +66,11 @@ public final class SubmitAPI {
                             headers: headers,
                             body: bodyData
                         ) { (result: Result<SubmitResponse, Error>, _) in
+                            // The popup submits the score on tap; the user may close it
+                            // before sending feedback, so arm the review prompt here too.
+                            if case .success = result {
+                                AppReviewManager.onScoreSubmitted(score: score)
+                            }
                             completion(result)
                         }
 
@@ -131,6 +136,9 @@ public final class SubmitAPI {
                    switch result {
                    case .success(let response):
                        GrowthConfig.shared.saveSubmitSurveyResponse(response)
+                       // Covers the popup and headless submits, so a promoter score
+                       // arms the App Store review prompt wherever it came from.
+                       AppReviewManager.onScoreSubmitted(score: score)
                        completion(.success(response))
                    case .failure(let error):
                        completion(.failure(error))

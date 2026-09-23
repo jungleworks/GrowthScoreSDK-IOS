@@ -28,4 +28,8 @@ Pod::Spec.new do |s|
     'GrowthScore' => ['GrowthScore/Resources/**/*']
   }
 
+  s.test_spec 'Tests' do |test_spec|
+    test_spec.source_files = 'Tests/**/*.swift'
+  end
+
 end
